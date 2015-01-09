@@ -1,5 +1,5 @@
 ### Team Lopez members: Peter Hooiveld & Bart Driessen.
-### Date: 9 january 2015
+### Date: January 9, 2015
 
 ### step 1: Setting global settings.
 library(rgdal)
@@ -38,16 +38,35 @@ plot (buffer)
 
 ### step 6: Buffer intersections with cities.
 # Reproject places in RD
-places <- spTransform(places,prj_string_RD)
+places <- spTransform(places, prj_string_RD)
 
 # Implement intersection
 intersects <- gIntersection(places, buffer,byid=T)
 plot (intersects)
 
-### step 7: Plot buffer, city points and city names.(special for you Bart)
-plot(buffer)
+### step 7: Plot buffer, city points and city names.
+# make spatial points data frame
+coords <- intersects@coords
+coords <- cbind(coords[1,1],coords[1,2])
+placeID <- NA
+for(i in 1:length(places)){
+  if(((as.integer(places@coords[i,1]) == as.integer(coords[1,1])) == TRUE) && ((as.integer(places@coords[i,2]) == as.integer(coords[1,2])) == TRUE)){
+    placeID <- i
+  }
+}
+name <- as.data.frame(as.character(places$name[placeID]))
 
-### step 8: Cityname and population (Utrecht and 100000)
-placeID <- 5973
-places@data$name[placeID]
-places@data$population[placeID]
+point <- SpatialPointsDataFrame(
+  coords, data = name, 
+  proj4string=prj_string_RD)
+
+# plotting the buffer, city points and city names
+plot(buffer, col="gray40")
+plot(point, add=TRUE, col="red", pch=19, cex=1.5)
+legend("right",legend=name[1,1],pch=19,col="red",cex=1,bty="n")
+
+### step 8: Cityname and population (Utrecht and 100000).
+# city name: Utrecht
+print(as.character(places@data$name[placeID]))
+# population: 100000
+print(places@data$population[placeID])
